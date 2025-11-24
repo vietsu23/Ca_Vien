@@ -52,6 +52,7 @@ const branchController = {
 
             res.status(201).json(savedBranch);
         } catch (error) {
+            console.error(error);
             res.status(500).json({ error: "Lỗi khi tạo chi nhánh mới" });
         }
     },

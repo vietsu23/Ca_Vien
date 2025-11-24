@@ -20,7 +20,7 @@ const inventoryController = {
     getInventoryByBranch: async (req, res) => {
         try {
             const inventories = await Inventory.find({ branchId: req.params.branchId })
-                .populate('productId', 'name price');
+                .populate('productId', 'name price imageUrl');
 
             res.json(inventories);
         } catch (error) {

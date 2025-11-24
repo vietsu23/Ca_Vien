@@ -42,7 +42,7 @@ const billController = {
         session.startTransaction();
 
         try {
-            const { products, totalAmount, perdiscount, staff, branchId, shiftId } = req.body;
+            const { products, totalAmount, perdiscount, staff, branchId, shiftId, paymentMethod } = req.body;
 
             if (!products || !staff || !branchId) {
                 return res.status(400).json({ error: "Thiếu thông tin hóa đơn" });
@@ -76,7 +76,8 @@ const billController = {
                 totalAmount,
                 perdiscount,
                 staff,
-                shiftId
+                shiftId,
+                paymentMethod,
             });
 
             const savedBill = await newBill.save({ session });

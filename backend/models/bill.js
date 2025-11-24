@@ -36,6 +36,11 @@ const billSchema = new mongoose.Schema({
     shiftId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Shift',
+    },
+    paymentMethod: {
+        type: String,
+        enum: ['cash', 'card'],
+        default: 'cash',
     }
 });
 
