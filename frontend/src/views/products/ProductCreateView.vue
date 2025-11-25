@@ -1,17 +1,43 @@
 <template>
-  <div class="p-4 max-w-xl mx-auto">
-    <h2 class="text-xl font-bold mb-4 text-center">Thêm sản phẩm</h2>
+  <div class="container py-4" style="max-width: 600px;">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h3 class="text-center fw-bold mb-4">Thêm sản phẩm</h3>
 
-    <div class="space-y-3">
-      <input v-model="form.name" type="text" placeholder="Tên sản phẩm" class="w-full border p-2 rounded" />
-      <input v-model="form.price" type="number" placeholder="Giá" class="w-full border p-2 rounded" />
-      <input v-model="form.category" type="text" placeholder="Loại" class="w-full border p-2 rounded" />
+        <div class="mb-3">
+          <label class="form-label">Tên sản phẩm</label>
+          <input v-model="form.name" type="text" class="form-control" placeholder="Nhập tên sản phẩm">
+        </div>
 
-      <input type="file" @change="onFileChange" class="w-full" />
+        <div class="mb-3">
+          <label class="form-label">Giá</label>
+          <input v-model="form.price" type="number" class="form-control" placeholder="Nhập giá sản phẩm">
+        </div>
 
-      <button @click="create" class="bg-blue-600 text-white w-full p-2 rounded">
-        Thêm sản phẩm
-      </button>
+        <div class="mb-3">
+          <label class="form-label">Số lượng</label>
+          <input v-model="form.quantity" type="number" class="form-control" placeholder="Nhập số lượng">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Giảm giá (%)</label>
+          <input v-model="form.sale" type="number" class="form-control" placeholder="Phần trăm giảm giá (nếu có)">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Mô tả</label>
+          <textarea v-model="form.description" class="form-control" rows="3" placeholder="Mô tả sản phẩm"></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Ảnh sản phẩm</label>
+          <input type="file" class="form-control" @change="onFileChange">
+        </div>
+
+        <button @click="create" class="btn btn-primary w-100 py-2 fw-bold">
+          Thêm sản phẩm
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -26,7 +52,9 @@ export default {
       form: {
         name: "",
         price: "",
-        category: "",
+        quantity: "",
+        description: "",
+        sale: 0,
       },
       imageFile: null,
     };
@@ -35,20 +63,34 @@ export default {
     onFileChange(e) {
       this.imageFile = e.target.files[0];
     },
+
     async create() {
+      if (!this.form.name || !this.form.price || !this.form.quantity) {
+        alert("Vui lòng nhập đầy đủ tên, giá và số lượng!");
+        return;
+      }
+
       try {
         const fd = new FormData();
-        Object.keys(this.form).forEach((k) => fd.append(k, this.form[k]));
+        for (const k in this.form) fd.append(k, this.form[k]);
         if (this.imageFile) fd.append("image", this.imageFile);
 
         await ProductService.create(fd);
-        alert("Thêm thành công!");
+
+        alert("Thêm sản phẩm thành công!");
         this.$router.push("/products");
+
       } catch (e) {
-        console.error(e);
+        console.error("Create Error:", e);
         alert("Lỗi khi thêm sản phẩm!");
       }
     },
   },
 };
 </script>
+
+<style scoped>
+.card {
+  border-radius: 12px;
+}
+</style>

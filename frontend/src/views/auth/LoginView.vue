@@ -80,9 +80,16 @@ const handleLogin = async () => {
     const res = await StaffService.login(form.value);
 
     if (res.data && res.data.staff) {
-      localStorage.setItem("staff", JSON.stringify(res.data.staff));
+      const staff = res.data.staff;
+      localStorage.setItem("staff", JSON.stringify(staff));
 
-      window.location.href = "/branches";
+      // Kiểm tra role
+      if (staff.role === "admin") {
+        window.location.href = "/dashboard"; // Nếu là manager
+      } else {
+        window.location.href = "/branches"; // Nếu là nhân viên bình thường
+      }
+
     } else {
       errorMessage.value = "Sai tài khoản hoặc mật khẩu!";
     }
@@ -93,6 +100,7 @@ const handleLogin = async () => {
     loading.value = false;
   }
 };
+
 </script>
 
 <style scoped>

@@ -117,28 +117,26 @@ const shiftController = {
     },
 
    
-    getShiftsByDate: async (req, res) => {
-        try {
-            const { date } = req.query;
+    
+ getShiftsByDate : async (req, res) => {
+  try {
+    const { date } = req.query;
+    const start = new Date(date);
+    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
 
-            const start = new Date(date);
-            const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    const shifts = await Shift.find({
+      createdAt: { $gte: start, $lt: end },
+    });
 
-            const shifts = await Shift.find({
-                createdAt: { $gte: start, $lt: end }
-            });
+    if (!shifts.length) return res.status(404).json({ error: "Không có ca nào trong ngày này" });
 
-            if (!shifts.length) {
-                return res.status(404).json({ error: "Không có ca nào trong ngày này" });
-            }
+    res.json(shifts);
+  } catch (err) {
+    console.error("getShiftsByDate Error:", err);
+    res.status(500).json({ error: "Không thể lấy ca theo ngày" });
+  }
+},
 
-            res.json(shifts);
-
-        } catch (err) {
-            console.error("getShiftsByDate Error:", err);
-            res.status(500).json({ error: "Không thể lấy ca theo ngày" });
-        }
-    },
 
     
     getCurrentShiftByBranch: async (req, res) => {

@@ -3,7 +3,23 @@ const Inventory = require("../models/inventory");
 const Product = require("../models/product");
 
 const billController = {
+    updateBill: async (req, res) => {
+        try {
+    const { id } = req.params;
+    const { paymentMethod } = req.body;
 
+    const bill = await Bill.findById(id);
+    if (!bill) return res.status(404).json({ message: "Hóa đơn không tồn tại" });
+
+    if (paymentMethod) bill.paymentMethod = paymentMethod;
+
+    await bill.save();
+    res.json({ message: "Cập nhật thành công", data: bill });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Cập nhật hóa đơn lỗi", error: err.message });
+  }
+    },
     // Lấy tất cả hóa đơn
     getAllBills: async (req, res) => {
         try {
@@ -42,7 +58,7 @@ const billController = {
         session.startTransaction();
 
         try {
-            const { products, totalAmount, perdiscount, staff, branchId, shiftId, paymentMethod } = req.body;
+            const {name, products, totalAmount, perdiscount, staff, branchId, shiftId, paymentMethod } = req.body;
 
             if (!products || !staff || !branchId) {
                 return res.status(400).json({ error: "Thiếu thông tin hóa đơn" });
@@ -71,6 +87,7 @@ const billController = {
 
             // Tạo hóa đơn
             const newBill = new Bill({
+                name,
                 branchId,
                 products,
                 totalAmount,
@@ -134,6 +151,16 @@ const billController = {
             res.status(500).json({ error: "Lỗi khi xóa hóa đơn" });
         }
     },
+    
+    deleteAllBills: async (req, res) => {
+        try {
+    await Bill.deleteMany({});
+    res.json({ message: "Đã xóa tất cả hóa đơn" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Xóa tất cả hóa đơn lỗi", error: err.message });
+  }
+    },
 
     // Lấy hóa đơn theo nhân viên
     getBillsByStaffId: async (req, res) => {
@@ -148,6 +175,28 @@ const billController = {
             res.status(500).json({ error: "Lỗi khi lấy hóa đơn theo nhân viên" });
         }
     },
+
+    // Lấy hóa đơn theo ca (shift)
+        getBillsByShiftId: async (req, res) => {
+        try {
+            const { shiftId } = req.params;
+
+            if (!shiftId) {
+            return res.status(400).json({ error: "Thiếu shiftId" });
+            }
+
+            const bills = await Bill.find({ shiftId })
+            .populate("products.productId")
+            .populate("branchId")
+            .populate("staff");
+
+            res.json(bills);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: "Lỗi khi lấy hóa đơn theo ca" });
+        }
+        },
+
 
     // Lọc hóa đơn theo ngày
     getBillsByDate: async (req, res) => {

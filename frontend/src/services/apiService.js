@@ -13,6 +13,9 @@ export const BillService = {
   getByStaffId(id) {
     return api.get(`/bills/staff/${id}`);
   },
+  getByShiftId(shiftId) {
+    return api.get(`/bills/shift/${shiftId}`);
+  },
   getById(id) {
     return api.get(`/bills/${id}`);
   },
@@ -25,6 +28,9 @@ export const BillService = {
   delete(id) {
     return api.delete(`/bills/${id}`);
   },
+  deleteAll() {
+    return api.delete("/bills"); // xóa tất cả
+  }
 };
 
 // ================== SHIFT ==================
@@ -44,12 +50,13 @@ export const ShiftService = {
   getCurrentByBranchId(branchId) {
     return api.get(`/shifts/branch/${branchId}/current`);
   },
-  getByDate() {
-    return api.get(`/shifts/date`);
-  },
   delete(id) {
     return api.delete(`/shifts/${id}`);
   },
+  close(data) {
+    // data: { shiftId, closedBy, closingCash }
+    return api.put("/shifts/close", data);
+  }
 };
 
 // ================== PRODUCT ==================

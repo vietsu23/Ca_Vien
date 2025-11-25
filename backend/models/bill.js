@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 
 const billSchema = new mongoose.Schema({
+    name: {
+        type: String,
+    },
     branchId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Branch',

@@ -1,61 +1,83 @@
 <template>
-  <div class="p-4 max-w-4xl mx-auto">
-    <h2 class="text-2xl font-bold mb-4 text-center">Danh sách nhân viên</h2>
+  <div class="container py-4">
+    <h2 class="text-center fw-bold mb-4">Danh sách nhân viên</h2>
 
     <!-- Search -->
-    <input
-      v-model="search"
-      type="text"
-      placeholder="Tìm nhân viên..."
-      class="w-full p-2 border rounded mb-4"
-    />
+    <div class="input-group mb-4">
+      <span class="input-group-text">
+        <i class="bi bi-search"></i>
+      </span>
+      <input
+        v-model="search"
+        type="text"
+        class="form-control"
+        placeholder="Tìm nhân viên..."
+      />
+    </div>
 
     <!-- Button -->
-    <button
-      @click="goCreate"
-      class="bg-blue-500 text-white px-4 py-2 rounded mb-4"
-    >
-      + Thêm nhân viên
-    </button>
+    <div class="mb-4">
+      <button
+        @click="goCreate"
+        class="btn btn-primary btn-lg w-100"
+      >
+        + Thêm nhân viên
+      </button>
+    </div>
 
-    <!-- Staff table -->
-    <div class="overflow-x-auto">
-      <table class="w-full border">
-        <thead>
-          <tr class="bg-gray-100">
-            <th class="border p-2">Tên</th>
-            <th class="border p-2">Email</th>
-            <th class="border p-2">Vai trò</th>
-            <th class="border p-2">Chi nhánh</th>
-            <th class="border p-2">Hành động</th>
+    <!-- Staff Table -->
+    <div class="table-responsive shadow-sm rounded">
+      <table class="table table-striped table-bordered align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Tên</th>
+            <th>Email</th>
+            <th>Vai trò</th>
+            <th>Chi nhánh</th>
+            <th class="text-center">Hành động</th>
           </tr>
         </thead>
+
         <tbody>
           <tr v-for="staff in filteredStaff" :key="staff._id">
-            <td class="border p-2">{{ staff.name }}</td>
-            <td class="border p-2">{{ staff.email }}</td>
-            <td class="border p-2">{{ staff.role }}</td>
-            <td class="border p-2">{{ staff.branchId?.name }}</td>
-            <td class="border p-2">
-              <button
-                @click="edit(staff._id)"
-                class="bg-green-500 text-white px-3 py-1 rounded"
-              >
-                Sửa
-              </button>
-              <button
-                @click="remove(staff._id)"
-                class="bg-red-500 text-white px-3 py-1 rounded ml-2"
-              >
-                Xóa
-              </button>
+            <td>{{ staff.name }}</td>
+            <td>{{ staff.email }}</td>
+            <td>
+              <span class="badge bg-info text-dark">
+                {{ staff.role }}
+              </span>
+            </td>
+            <td>{{ staff.branchId?.name }}</td>
+            <td class="text-center">
+              <div class="btn-group">
+                <button
+                  @click="edit(staff._id)"
+                  class="btn btn-success btn-sm"
+                >
+                  <i class="bi bi-pencil-square"></i> Sửa
+                </button>
+                <button
+                  @click="remove(staff._id)"
+                  class="btn btn-danger btn-sm"
+                >
+                  <i class="bi bi-trash"></i> Xóa
+                </button>
+              </div>
             </td>
           </tr>
+
+          <tr v-if="filteredStaff.length === 0">
+            <td colspan="5" class="text-center py-3 text-muted">
+              Không có nhân viên nào.
+            </td>
+          </tr>
+
         </tbody>
       </table>
     </div>
   </div>
 </template>
+
 
 <script>
 import { StaffService } from "@/services/apiService";

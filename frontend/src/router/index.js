@@ -7,7 +7,7 @@ import DashboardView from '@/views/dashboard/DashboardView.vue';
 // Products
 import ProductListView from '@/views/products/ProductListView.vue';
 import ProductCreateView from '@/views/products/ProductCreateView.vue';
-import ProductEditView from '@/views/products/ProductEditView.vue';
+
 
 // Branches
 import BranchListView from '@/views/branches/BranchListView.vue';
@@ -22,16 +22,18 @@ import StaffEditView from '@/views/staffs/StaffEditView.vue';
 // Inventories
 import InventoryListView from '@/views/inventory/InventoryListView.vue';
 import InventoryUpdateView from '@/views/inventory/InventoryUpdateView.vue';
-
+import InventoryListViewAdmin from '@/views/inventory/InventoryListViewAdmin.vue';
 // Bills
-import BillListView from '@/views/bills/BillListView.vue';
+import BillListView from '@/views/bills/BillListViewStaff.vue';
 import BillCreateView from '@/views/bills/BillCreateView.vue';
 import BillDetailView from '@/views/bills/BillDetailView.vue';
+import BillListViewAdmin from '@/views/bills/BillListViewAdmin.vue';
 
 // Shifts
 import ShiftListView from '@/views/shifts/ShiftListView.vue';
 import ShiftOpenView from '@/views/shifts/ShiftOpenView.vue';
 import ShiftDetailView from '@/views/shifts/ShiftDetailView.vue';
+import ShiftCloseView from '@/views/shifts/ShiftCloseView.vue';
 
 // Not Found
 import NotFoundView from '@/views/notfound/NotFoundView.vue';
@@ -45,7 +47,7 @@ const routes = [
   // Products
   { path: '/products', component: ProductListView },
   { path: '/products/create', component: ProductCreateView },
-  { path: '/products/:id/edit', component: ProductEditView, props: true },
+  
 
   // Branches
   { path: '/branches', component: BranchListView },
@@ -60,16 +62,18 @@ const routes = [
   // Inventories
   { path: '/inventories', component: InventoryListView },
   { path: '/inventories/:id/update', component: InventoryUpdateView, props: true },
-
+  { path: '/inventories/admin', component: InventoryListViewAdmin },
   // Bills
   { path: '/bills', component: BillListView },
   { path: '/bills/create', component: BillCreateView },
   { path: '/bills/:id', component: BillDetailView, props: true },
+  { path: '/bills/admin', component: BillListViewAdmin },
 
   // Shifts
   { path: '/shifts', component: ShiftListView },
   { path: '/shifts/open', component: ShiftOpenView },
   { path: '/shifts/:id', component: ShiftDetailView, props: true },
+  { path: '/shifts/:id/close', component: ShiftCloseView, props: true },
 
   // Catch-all NotFound
   { path: '/:pathMatch(.*)*', component: NotFoundView },

@@ -1,22 +1,20 @@
 <template>
   <div class="container py-4">
-    <h1 class="text-2xl fw-bold mb-4 text-center">Tạo hóa đơn</h1>
 
-    <!-- Tìm kiếm sản phẩm -->
+    <!-- Tiêu đề hóa đơn -->
+    <h1 class="text-2xl fw-bold mb-4 text-center">
+      {{ billName || "Tạo hóa đơn" }}
+    </h1>
+
+    <!-- Chọn sản phẩm -->
     <div class="mb-4 d-flex gap-2">
-      <!-- <input 
-        type="text" 
-        v-model="search" 
-        @input="filterProducts" 
-        placeholder="Tìm sản phẩm..." 
-        class="form-control"
-      /> -->
       <select v-model="selectedProductId" class="form-select w-50">
         <option value="">-- Chọn sản phẩm --</option>
         <option v-for="p in filteredProducts" :key="p._id" :value="p._id">
           {{ p.name }} - {{ formatPrice(p.price) }} đ
         </option>
       </select>
+
       <input 
         type="number" 
         v-model.number="quantityToAdd" 
@@ -24,10 +22,11 @@
         min="1" 
         placeholder="SL"
       />
+
       <button class="btn btn-primary" @click="addItem">Thêm</button>
     </div>
 
-    <!-- Bảng sản phẩm đã chọn -->
+    <!-- Bảng sản phẩm -->
     <div v-if="items.length === 0" class="text-center text-muted py-4">
       Chưa có sản phẩm nào trong hóa đơn
     </div>
@@ -37,41 +36,46 @@
         <thead class="table-light">
           <tr>
             <th>Sản phẩm</th>
-            <th>Giá (có thể chỉnh)</th>
+            <th>Giá</th>
             <th>Số lượng</th>
             <th>Thành tiền</th>
             <th>Xóa</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in items" :key="item.productId">
-            <td>{{ item.name }}</td>
-            <td>{{ formatPrice(item.price) }} đ</td>
-            <td>
-              <input 
-                type="number" 
-                v-model.number="item.quantity" 
-                min="1" 
-                class="form-control" 
-                style="width: 80px;"
-                @input="onQuantityChange(index)"
-              />
-            </td>
-            <td>
-              <input 
-                type="number" 
-                v-model.number="item.total" 
-                min="0" 
-                class="form-control" 
-                style="width: 120px;"
-                @input="onTotalChange(index)"
-              />
-            </td>
-            <td class="text-center">
-              <button class="btn btn-danger btn-sm" @click="removeItem(index)">X</button>
-            </td>
-          </tr>
-        </tbody>
+  <tr v-for="(item, index) in items" :key="item.productId">
+    <td>{{ item.name }}</td>
+    <!-- Giá gốc, chỉ hiển thị -->
+    <td>{{ formatPrice(item.price) }} đ</td>
+    
+    <!-- Chỉnh số lượng -->
+    <td>
+      <input 
+        type="number" 
+        v-model.number="item.quantity" 
+        min="1" 
+        class="form-control" 
+        style="width: 80px;"
+        @input="updateTotal(index)"
+      />
+    </td>
+    
+    <!-- Thành tiền có thể chỉnh -->
+    <td>
+      <input
+        type="number"
+        v-model.number="item.total"
+        class="form-control"
+        style="width: 120px;"
+      />
+    </td>
+    
+    <td class="text-center">
+      <button class="btn btn-danger btn-sm" @click="removeItem(index)">X</button>
+    </td>
+  </tr>
+</tbody>
+
       </table>
     </div>
 
@@ -80,26 +84,23 @@
       Tổng: {{ formatPrice(total) }} đ
     </div>
 
-    <!-- Tạo hóa đơn -->
-    <!-- Các phần trên giữ nguyên -->
-
-<!-- Tạo hóa đơn -->
-<div class="d-flex gap-2">
-  <button 
-    class="btn btn-success flex-grow-1 py-2" 
-    :disabled="items.length === 0" 
-    @click="saveBill('cash')"
-  >
-    Thanh toán tiền mặt
-  </button>
-  <button 
-    class="btn btn-primary flex-grow-1 py-2" 
-    :disabled="items.length === 0" 
-    @click="saveBill('card')"
-  >
-    Thanh toán chuyển khoản
-  </button>
-</div>
+    <!-- Thanh toán -->
+    <div class="d-flex gap-2">
+      <button 
+        class="btn btn-success flex-grow-1 py-2" 
+        :disabled="items.length === 0" 
+        @click="saveBill('cash')"
+      >
+        Thanh toán tiền mặt
+      </button>
+      <button 
+        class="btn btn-primary flex-grow-1 py-2" 
+        :disabled="items.length === 0" 
+        @click="saveBill('card')"
+      >
+        Thanh toán chuyển khoản
+      </button>
+    </div>
 
   </div>
 </template>
@@ -107,7 +108,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { ProductService, BillService } from "@/services/apiService";
-import { useRouter } from "vue-router"; // <-- import
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 
@@ -115,9 +116,9 @@ const products = ref([]);
 const filteredProducts = ref([]);
 const items = ref([]);
 
-const search = ref("");
 const selectedProductId = ref("");
 const quantityToAdd = ref(1);
+const billName = ref("");
 
 const formatPrice = (value) => {
   if (!value) return "0";
@@ -130,17 +131,13 @@ const loadProducts = async () => {
   filteredProducts.value = [...products.value];
 };
 
-const filterProducts = () => {
-  const term = search.value.toLowerCase();
-  filteredProducts.value = products.value.filter(p => p.name.toLowerCase().includes(term));
-};
-
 const addItem = () => {
   if (!selectedProductId.value || quantityToAdd.value < 1) return;
-  const p = products.value.find(p => p._id === selectedProductId.value);
+
+  const p = products.value.find((p) => p._id === selectedProductId.value);
   if (!p) return;
 
-  const exist = items.value.find(i => i.productId === p._id);
+  const exist = items.value.find((i) => i.productId === p._id);
   if (exist) {
     alert(`${p.name} đã có trong hóa đơn!`);
     return;
@@ -152,57 +149,38 @@ const addItem = () => {
     price: p.price,
     quantity: quantityToAdd.value,
     total: p.price * quantityToAdd.value,
-    manualEdit: false
   });
 
   selectedProductId.value = "";
   quantityToAdd.value = 1;
-  search.value = "";
 
   localStorage.setItem("selectedProducts", JSON.stringify(items.value));
 };
 
-// Khi quantity thay đổi
-const onQuantityChange = (index) => {
-  const item = items.value[index];
-  if (!item.manualEdit) {
-    item.total = item.price * item.quantity;
-  }
-};
-
-// Khi staff chỉnh sửa ô Thành tiền
-const onTotalChange = (index) => {
-  const item = items.value[index];
-  item.manualEdit = true;
-};
-
-// Khi load từ localStorage
-onMounted(() => {
-  loadProducts();
-  const selected = JSON.parse(localStorage.getItem("selectedProducts") || "[]");
-  items.value = selected.map(i => ({
-    ...i,
-    total: i.total || i.price * i.quantity // <-- nếu chưa có total thì gán mặc định
-  }));
-});
-
-// Khi thay đổi số lượng, cập nhật total nếu staff chưa chỉnh sửa
+// Khi thay đổi số lượng, nếu người dùng chưa chỉnh thành tiền thủ công thì vẫn tính tự động
 const updateTotal = (index) => {
   const item = items.value[index];
-  if (!item.total || item.total === 0) {
+  // Nếu người dùng chưa nhập thành tiền thì tự tính
+  if (!item.totalManual) {
     item.total = item.price * item.quantity;
   }
 };
+
+// Khi người dùng chỉnh thành tiền thủ công, đánh dấu
+const onTotalChange = (index) => {
+  items.value[index].totalManual = true;
+};
+
+// Computed tổng tiền
+const total = computed(() =>
+  items.value.reduce((sum, i) => sum + (i.total || 0), 0)
+);
 
 
 const removeItem = (index) => {
   items.value.splice(index, 1);
   localStorage.setItem("selectedProducts", JSON.stringify(items.value));
 };
-
-const total = computed(() =>
-  items.value.reduce((sum, i) => sum + i.price * i.quantity, 0)
-);
 
 const saveBill = async (paymentMethod) => {
   if (items.value.length === 0) {
@@ -220,17 +198,18 @@ const saveBill = async (paymentMethod) => {
   }
 
   const billData = {
+    name: billName.value,
     staff: staff._id,
     shiftId,
     branchId,
-    products: items.value.map(i => ({
+    products: items.value.map((i) => ({
       productId: i.productId,
       quantity: i.quantity,
-      price: i.price
+      price: i.price,
     })),
     totalAmount: total.value,
     perdiscount: 0,
-    paymentMethod // <-- thêm trường paymentMethod
+    paymentMethod,
   };
 
   try {
@@ -247,18 +226,25 @@ const saveBill = async (paymentMethod) => {
   }
 };
 
+onMounted(async () => {
+  // 1. Sinh tên hóa đơn tự động
+  let billsCount = parseInt(localStorage.getItem("billsCount") || "0");
+  billsCount += 1;
+  billName.value = "HD" + billsCount.toString().padStart(5, "0");
+  localStorage.setItem("billsCount", billsCount);
 
+  // 2. Load sản phẩm
+  await loadProducts();
 
-onMounted(() => {
-  loadProducts();
+  // 3. Load các sản phẩm đã chọn từ localStorage
   const selected = JSON.parse(localStorage.getItem("selectedProducts") || "[]");
-  items.value = selected;
+  items.value = selected.map((i) => ({
+    ...i,
+    total: i.total || i.price * i.quantity,
+  }));
 });
 </script>
 
 <style scoped>
-.table-responsive {
-  max-height: 500px;
-  overflow-y: auto;
-}
+/* Bạn có thể thêm style bootstrap hoặc tuỳ chỉnh */
 </style>

@@ -2,49 +2,50 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
     <div class="container">
 
-      <a class="navbar-brand fw-bold" href="#">POS System</a>
+      <!-- Logo / Brand -->
+      <a class="navbar-brand fw-bold" href="#" @click.prevent="goToInventories">CaVien 69</a>
 
+
+      <!-- Nút toggle khi màn hình nhỏ -->
       <button
         class="navbar-toggler"
         type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#navbarMenu"
-        aria-controls="navbarMenu"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
+        @click="menuOpen = !menuOpen"
       >
         <span class="navbar-toggler-icon"></span>
       </button>
 
-      <div class="collapse navbar-collapse" id="navbarMenu">
+      <!-- Menu chính -->
+      <div
+        class="collapse navbar-collapse"
+        :class="{ show: menuOpen }"
+        id="navbarMenu"
+      >
         <ul class="navbar-nav ms-auto align-items-center">
 
+          <!-- Thông tin nhân viên -->
           <li class="nav-item me-3">
             <span class="navbar-text fw-semibold">
-              {{ staffName }} - {{ branchName }} 
-              <span v-if="shiftId">(Ca: {{ shiftId }})</span>
+              {{ staffName }} - {{ branchName }}
+              <!-- <span v-if="shiftId">(Ca: {{ shiftId }})</span> -->
             </span>
           </li>
 
-          <!-- Dropdown -->
-          <li class="nav-item dropdown me-2">
-            <button
-              ref="dropdownBtn"
-              class="btn btn-outline-primary dropdown-toggle"
-              type="button"
-            >
-              Hóa đơn / Doanh thu
-            </button>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" @click.prevent="goToBills">Danh sách hóa đơn</a></li>
-              <li><a class="dropdown-item" @click.prevent="goToRevenue">Xem doanh thu</a></li>
-            </ul>
+          <!-- Hóa đơn / Doanh thu -->
+          <li class="nav-item me-2">
+            <div class="d-flex flex-column flex-md-row gap-2">
+              <button class="btn btn-outline-primary" @click="goToBills">
+                Danh sách hóa đơn
+              </button>
+            </div>
           </li>
 
+          <!-- Đóng ca -->
           <li class="nav-item me-2">
             <button class="btn btn-outline-success" @click="closeShift">Đóng ca</button>
           </li>
 
+          <!-- Đăng xuất -->
           <li class="nav-item">
             <button class="btn btn-outline-danger" @click="logout">Đăng xuất</button>
           </li>
@@ -58,7 +59,6 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import * as bootstrap from "bootstrap";
 import { ShiftService } from "@/services/apiService";
 
 const router = useRouter();
@@ -66,9 +66,18 @@ const staffName = ref("");
 const branchName = ref("");
 const shiftId = ref("");
 
-// Dropdown button ref
-const dropdownBtn = ref(null);
-let dropdownInstance = null;
+// Quản lý trạng thái menu trên mobile
+const menuOpen = ref(false);
+const goToInventories = () => {
+  const staff = JSON.parse(localStorage.getItem("staff") || "{}");
+
+  if (staff.role === "admin") {
+    router.push("/dashboard"); // Admin thì tới dashboard
+  } else {
+    router.push("/inventories"); // Nhân viên bình thường
+  }
+};
+
 
 onMounted(() => {
   const staff = JSON.parse(localStorage.getItem("staff"));
@@ -78,50 +87,48 @@ onMounted(() => {
   branchName.value = branch?.name || "";
 
   shiftId.value = localStorage.getItem("shiftId") || "";
-
-  // Tạo dropdown instance trên nút trigger
-  if (dropdownBtn.value) {
-    dropdownInstance = new bootstrap.Dropdown(dropdownBtn.value, { autoClose: true });
-  }
 });
 
+// Chuyển hướng
 const goToBills = () => {
-  if (dropdownInstance) dropdownInstance.hide(); // ẩn dropdown
+  menuOpen.value = false; // ẩn menu khi click mobile
   router.push("/bills");
 };
 
 const goToRevenue = () => {
-  if (dropdownInstance) dropdownInstance.hide(); // ẩn dropdown
+  menuOpen.value = false;
   router.push("/revenue");
 };
 
-const closeShift = async () => {
+// Đóng ca
+const closeShift = () => {
   if (!shiftId.value) {
     alert("Không có ca đang mở!");
     return;
   }
 
-  try {
-    await ShiftService.close(shiftId.value);
-    alert("Đã đóng ca thành công!");
-    localStorage.removeItem("shiftId");
-    router.push("/login");
-  } catch (err) {
-    console.error(err);
-    alert(err.response?.data?.error || "Không thể đóng ca!");
-  }
+  // Chuyển hướng sang trang đóng ca với shiftId
+  router.push({ path: `/shifts/${shiftId.value}/close` });
 };
 
+// Đăng xuất
 const logout = () => {
   localStorage.removeItem("staff");
-  localStorage.removeItem("branch");
+  localStorage.removeItem("branchId");
   localStorage.removeItem("shiftId");
-  router.push("/login");
+  router.push("/");
 };
 </script>
 
 <style scoped>
 .navbar-text {
   font-weight: 500;
+}
+
+/* Trên mobile: các nút Hóa đơn / Doanh thu xếp theo cột */
+@media (max-width: 767px) {
+  .flex-md-row {
+    flex-direction: column !important;
+  }
 }
 </style>

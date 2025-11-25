@@ -1,21 +1,65 @@
 <template>
-  <div class="p-4 max-w-xl mx-auto">
-    <h2 class="text-xl font-bold mb-4 text-center">Thêm nhân viên</h2>
+  <div class="container py-4" style="max-width: 500px;">
+    <h2 class="text-center fw-bold mb-4">Thêm nhân viên</h2>
 
-    <div class="space-y-3">
-      <input v-model="form.name" type="text" placeholder="Tên" class="w-full p-2 border rounded" />
-      <input v-model="form.email" type="email" placeholder="Email" class="w-full p-2 border rounded" />
-      <input v-model="form.password" type="password" placeholder="Mật khẩu" class="w-full p-2 border rounded" />
-      <input v-model="form.role" type="text" placeholder="Vai trò" class="w-full p-2 border rounded" />
-      <input v-model="form.branchId" type="text" placeholder="ID Chi nhánh" class="w-full p-2 border rounded" />
+    <div class="card shadow-sm">
+      <div class="card-body">
 
-      <button @click="create" class="w-full bg-blue-500 text-white p-2 rounded">
-        Tạo nhân viên
-      </button>
+        <!-- Name -->
+        <div class="mb-3">
+          <label class="form-label">Tên nhân viên</label>
+          <input
+            v-model="form.name"
+            type="text"
+            class="form-control"
+            placeholder="Nhập tên"
+          />
+        </div>
+
+        <!-- Phone -->
+        <div class="mb-3">
+          <label class="form-label">Số điện thoại</label>
+          <input
+            v-model="form.phone"
+            type="text"
+            class="form-control"
+            placeholder="Nhập số điện thoại"
+          />
+        </div>
+
+        <!-- Password -->
+        <div class="mb-3">
+          <label class="form-label">Mật khẩu</label>
+          <input
+            v-model="form.password"
+            type="password"
+            class="form-control"
+            placeholder="Nhập mật khẩu"
+          />
+        </div>
+
+        <!-- Role -->
+        <div class="mb-3">
+          <label class="form-label">Vai trò</label>
+          <select v-model="form.role" class="form-select">
+            <option value="">-- Chọn vai trò --</option>
+            <option value="staff">Nhân viên</option>
+            <option value="admin">Quản trị</option>
+          </select>
+        </div>
+
+        <!-- Button -->
+        <button
+          @click="create"
+          class="btn btn-primary w-100 py-2 mt-2"
+        >
+          Tạo nhân viên
+        </button>
+
+      </div>
     </div>
   </div>
 </template>
-
 <script>
 import { StaffService } from "@/services/apiService";
 
@@ -25,10 +69,9 @@ export default {
     return {
       form: {
         name: "",
-        email: "",
+        phone: "",
         password: "",
         role: "",
-        branchId: "",
       },
     };
   },
@@ -40,7 +83,7 @@ export default {
         this.$router.push("/staffs");
       } catch (err) {
         console.error(err);
-        alert("Lỗi tạo nhân viên!");
+        alert(err.response?.data?.error || "Lỗi tạo nhân viên!");
       }
     },
   },

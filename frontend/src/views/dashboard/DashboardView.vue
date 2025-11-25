@@ -1,142 +1,133 @@
 <template>
-  <div class="min-h-screen bg-gray-100 p-4 sm:p-6">
+  <div class="container py-4">
+
     <!-- HEADER -->
-    <header
-      class="flex justify-between items-center bg-white p-4 shadow rounded-xl mb-6"
-    >
-      <h1 class="text-xl sm:text-2xl font-bold text-gray-700">
-        Dashboard quản lý
-      </h1>
-
-      <div class="flex items-center gap-3">
-        <span class="text-gray-600 font-medium">
-          {{ staff?.name || "Nhân viên" }}
-        </span>
-
-        <button
-          class="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
-          @click="logout"
-        >
-          Đăng xuất
-        </button>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="h3 fw-bold">Dashboard quản lý</h1>
+      <div>
+        <span class="me-3">{{ staff?.name || "Nhân viên" }}</span>
+        <button class="btn btn-danger btn-sm" @click="logout">Đăng xuất</button>
       </div>
-    </header>
+    </div>
 
     <!-- STAT CARDS -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-      <div
-        v-for="card in statCards"
-        :key="card.title"
-        class="bg-white p-4 rounded-xl shadow flex flex-col items-start"
-      >
-        <p class="text-sm text-gray-500">{{ card.title }}</p>
-        <p class="text-2xl font-bold mt-1">{{ card.value }}</p>
+    <div class="row mb-4">
+      <div class="col-md-3 mb-3" v-for="card in statCards" :key="card.title">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <p class="text-muted mb-1">{{ card.title }}</p>
+            <h5 class="card-title fw-bold">{{ card.value }}</h5>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- CURRENT SHIFT -->
-    <div class="bg-white p-5 rounded-xl shadow mb-6">
-      <h2 class="text-lg font-bold mb-3 text-gray-700">
-        Ca làm việc hiện tại
-      </h2>
-
-      <div v-if="currentShift" class="space-y-2">
-        <p><strong>Mã ca:</strong> {{ currentShift._id }}</p>
-        <p><strong>Người mở ca:</strong> {{ currentShift.openedByName }}</p>
-        <p><strong>Tiền mở ca:</strong> {{ currentShift.openingCash }} VND</p>
-        <p>
-          <strong>Thời gian:</strong>
-          {{ new Date(currentShift.createdAt).toLocaleString() }}
-        </p>
-      </div>
-
-      <p v-else class="text-gray-500">Chưa có ca nào đang mở.</p>
+    <!-- Doanh thu theo chi nhánh -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-bold">Doanh thu theo chi nhánh hôm nay</div>
+      <ul class="list-group list-group-flush">
+        <li
+          class="list-group-item d-flex justify-content-between align-items-center"
+          v-for="(revenue, branchId) in revenueByBranch"
+          :key="branchId"
+        >
+          {{ branchNames[branchId] || branchId }}
+          <span class="fw-bold">{{ formatPrice(revenue) }} đ</span>
+        </li>
+      </ul>
     </div>
+
 
     <!-- QUICK ACTIONS -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      <button
-        v-for="action in quickActions"
-        :key="action.label"
-        class="bg-blue-600 text-white p-4 rounded-xl shadow hover:bg-blue-700 transition"
-        @click="go(action.route)"
-      >
-        {{ action.label }}
-      </button>
+    <div class="row g-3">
+      <div class="col-6 col-md-3" v-for="action in quickActions" :key="action.label">
+        <button class="btn btn-primary w-100 py-3" @click="go(action.route)">
+          {{ action.label }}
+        </button>
+      </div>
     </div>
+
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
-import {
-  BillService,
-  ShiftService,
-  InventoryService,
-  StaffService,
-} from "@/services/apiService";
+import { BillService, ShiftService, InventoryService, StaffService } from "@/services/apiService";
 
-const staff = ref(JSON.parse(localStorage.getItem("staff")));
-
+const staff = ref(JSON.parse(localStorage.getItem("staff") || "{}"));
 const statCards = ref([
-  { title: "Tổng doanh thu hôm nay", value: "0đ" },
+  { title: "Tổng doanh thu hôm nay", value: "0 đ" },
   { title: "Tổng đơn hôm nay", value: 0 },
   { title: "Sản phẩm tồn kho", value: 0 },
   { title: "Tổng nhân viên", value: 0 },
 ]);
 
 const currentShift = ref(null);
+const revenueByBranch = ref({});
+const branchNames = ref({}); // lưu tên chi nhánh theo branchId
 
 const quickActions = [
-  { label: "Quản lý Hóa đơn", route: "/bills" },
+  { label: "Quản lý Hóa đơn", route: "/bills/admin" },
   { label: "Quản lý Sản phẩm", route: "/products" },
   { label: "Quản lý Nhân viên", route: "/staffs" },
-  { label: "Quản lý Ca", route: "/shifts" },
+  { label: "Quản lý Tồn Kho", route: "/inventories/admin" },
 ];
 
-// Lấy dữ liệu thống kê
+// format tiền
+const formatPrice = (value) => value ? new Intl.NumberFormat("vi-VN").format(value) : 0;
+
+// load dữ liệu dashboard
 const loadDashboard = async () => {
   try {
-    // 1. Lấy tổng bill hôm nay
-    const billsRes = await BillService.getAll();
     const today = new Date().toISOString().split("T")[0];
 
-    const todaysBills = billsRes.data.filter((b) =>
-      b.createdAt.startsWith(today)
-    );
+    // 1. Lấy tất cả hóa đơn
+    const billsRes = await BillService.getAll();
+    const bills = billsRes.data || [];
 
-    const revenue = todaysBills.reduce(
-      (sum, bill) => sum + (bill.total || 0),
-      0
-    );
+    // Lọc hóa đơn hôm nay
+    const todaysBills = bills.filter(b => b.sellDate.startsWith(today));
 
-    statCards.value[0].value = revenue.toLocaleString() + "đ";
+    // Tổng doanh thu và số đơn
+    const totalRevenue = todaysBills.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+    statCards.value[0].value = formatPrice(totalRevenue) + " đ";
     statCards.value[1].value = todaysBills.length;
 
-    // 2. Inventory
+    // Doanh thu theo chi nhánh
+    const revenueMap = {};
+    const branchMap = {};
+    for (let bill of todaysBills) {
+      const branchId = bill.branchId?._id || bill.branchId;
+      const branchName = bill.branchId?.name || branchId;
+      revenueMap[branchId] = (revenueMap[branchId] || 0) + (bill.totalAmount || 0);
+      branchMap[branchId] = branchName;
+    }
+    revenueByBranch.value = revenueMap;
+    branchNames.value = branchMap;
+
+    // Inventory count
     const invRes = await InventoryService.getAll();
     statCards.value[2].value = invRes.data.length;
 
-    // 3. Staff count
+    // Staff count
     const staffRes = await StaffService.getAll();
     statCards.value[3].value = staffRes.data.length;
 
-    // 4. Current shift
-    if (staff.value?.branchId) {
-      const shiftRes = await ShiftService.getCurrentByBranchId(
-        staff.value.branchId
-      );
-      currentShift.value = shiftRes.data || null;
-    }
+    // Current shift
+
+
+
   } catch (err) {
-    console.log("Dashboard error:", err);
+    console.error("Dashboard error:", err);
   }
 };
 
+// chuyển hướng
 const go = (route) => {
   window.location.href = route;
 };
 
+// logout
 const logout = () => {
   localStorage.clear();
   window.location.href = "/login";
@@ -148,4 +139,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.card-body p {
+  margin: 0;
+}
 </style>
