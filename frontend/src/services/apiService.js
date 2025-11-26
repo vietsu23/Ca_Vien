@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://cavien-backend.onrender.com/api",   // backend URL
+  baseURL: "https://ca-vien-1.onrender.com/api",   // backend URL
   timeout: 10000,
 });
 
