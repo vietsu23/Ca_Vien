@@ -6,6 +6,7 @@ const shiftController = {
     getAllShifts: async (req, res) => {
         try {
             const shifts = await Shift.find()
+                .populate("branchId")
                 .populate("openedBy")
                 .populate("closedBy");
 

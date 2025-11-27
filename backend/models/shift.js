@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const shiftSchema = new mongoose.Schema({
     branchId: {
         type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branch',
     },
     openedBy: {
         type: mongoose.Schema.Types.ObjectId,
