@@ -59,56 +59,48 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { ShiftService } from "@/services/apiService";
 
 const router = useRouter();
 const staffName = ref("");
-const branchName = ref("");
 const shiftId = ref("");
 
-// Quản lý trạng thái menu trên mobile
+// Quản lý menu trên mobile
 const menuOpen = ref(false);
+
+// Chuyển hướng vào inventories
 const goToInventories = () => {
   const staff = JSON.parse(localStorage.getItem("staff") || "{}");
-
   if (staff.role === "admin") {
-    router.push("/dashboard"); // Admin thì tới dashboard
+    router.push("/dashboard");
   } else {
-    router.push("/inventories"); // Nhân viên bình thường
+    router.push("/inventories");
   }
 };
 
-
-onMounted(() => {
-  const staff = JSON.parse(localStorage.getItem("staff"));
-  staffName.value = staff?.name || "Không xác định";
-
-  const branch = JSON.parse(localStorage.getItem("branch"));
-  branchName.value = branch?.name || "";
+// Lấy dữ liệu từ localStorage
+const loadData = () => {
+  const staff = JSON.parse(localStorage.getItem("staff") || "{}");
+  staffName.value = staff.name || "Không xác định";
 
   shiftId.value = localStorage.getItem("shiftId") || "";
-});
+};
+
+onMounted(loadData);
 
 // Chuyển hướng
 const goToBills = () => {
-  menuOpen.value = false; // ẩn menu khi click mobile
-  router.push("/bills");
-};
-
-const goToRevenue = () => {
   menuOpen.value = false;
-  router.push("/revenue");
+  router.push("/bills");
 };
 
 // Đóng ca
 const closeShift = () => {
-  if (!shiftId.value) {
+  const sid = localStorage.getItem("shiftId");
+  if (!sid) {
     alert("Không có ca đang mở!");
     return;
   }
-
-  // Chuyển hướng sang trang đóng ca với shiftId
-  router.push({ path: `/shifts/${shiftId.value}/close` });
+  router.push({ path: `/shifts/${sid}/close` });
 };
 
 // Đăng xuất
@@ -119,16 +111,3 @@ const logout = () => {
   router.push("/");
 };
 </script>
-
-<style scoped>
-.navbar-text {
-  font-weight: 500;
-}
-
-/* Trên mobile: các nút Hóa đơn / Doanh thu xếp theo cột */
-@media (max-width: 767px) {
-  .flex-md-row {
-    flex-direction: column !important;
-  }
-}
-</style>

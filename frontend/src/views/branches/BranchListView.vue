@@ -66,7 +66,7 @@
             <td class="text-center">
               <button
                 class="btn btn-success btn-sm w-100"
-                @click="enterShift(s.branchId?._id)"
+                @click="enterShift(s.branchId?._id, s._id)"
               >
                 Vào ca
               </button>
@@ -124,8 +124,9 @@ const openShift = (branchId) => {
 };
 
 // enter shift (go to inventories)
-const enterShift = (branchId) => {
+const enterShift = (branchId, shiftId) => {
   localStorage.setItem("branchId", branchId);
+  localStorage.setItem("shiftId", shiftId);
   router.push("/inventories");
 };
 
